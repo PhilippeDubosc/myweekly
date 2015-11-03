@@ -3,6 +3,7 @@ var mongoClient = require('mongodb').MongoClient,
     assert = require('assert');
 var cool = require('cool-ascii-faces');
 var app = express();
+var scrapMyWeekly = require('./modules/ScrapMyWeekly');
 
 var mongoUrl = 'mongodb://myweekly:gopotodo@ds049084.mongolab.com:49084/heroku_kl782g06';
 
@@ -26,12 +27,12 @@ app.get('/weeklynewspapers', function (request, response) {
     mongoClient.connect(mongoUrl, function (err, db) {
         assert.equal(null, err);
         console.log("Connected correctly to server");
-        var findDocuments = function(db/*, callback*/) {
+        var findDocuments = function (db/*, callback*/) {
             // Get the documents collection
             var collection = db.collection('weeklynewspaper');
             console.log("find");
             // Find some documents
-            collection.find({}).toArray(function(err, docs) {
+            collection.find({}).toArray(function (err, docs) {
                 console.log("validate");
                 assert.equal(err, null);
                 assert.equal(1, docs.length);
@@ -48,6 +49,15 @@ app.get('/weeklynewspapers', function (request, response) {
     response.send("ok");
 });
 
+app.get('/update', function (request, response) {
+    scrapMyWeekly.listAllNewsPapers(function (error, newspapers) {
+        if (!error) {
+            response.send(JSON.stringify(newspapers));
+        } else {
+            response.sendStatus(502);
+        }
+    });
+});
 
 app.listen(app.get('port'), function () {
     console.log('Node app is running on port', app.get('port'));
